@@ -1,0 +1,54 @@
+name: Publish Coverage & Videos
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Install Playwright Browsers
+        run: pwsh bin/Debug/net8.0/playwright.ps1 install
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore
+
+      - name: Run tests with code coverage
+        run: dotnet test --collect:"XPlat Code Coverage" --settings "TestRunParameters.RunConfiguration.ResultsDirectory=TestResults"
+
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
+      - name: Generate HTML report
+        run: |
+          reportgenerator "-reports:**/coverage.cobertura.xml" "-targetdir:Cobertura" -reporttypes:HTML
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Coverage Report
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: Cobertura
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
