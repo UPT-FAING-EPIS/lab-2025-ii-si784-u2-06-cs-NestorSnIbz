@@ -15,55 +15,60 @@ jobs:
       id-token: write
 
     steps:
-      # 1. Checkout del repositorio
+      # 1. Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Configurar .NET
+      # 2. Setup .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.x'
 
-      # 3. Restaurar dependencias
+      # 3. Setup Node.js (requerido por Playwright)
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # 4. Restore dependencies
       - name: Restore dependencies
         run: dotnet restore UPTSiteTests/UPTSiteTests.csproj
 
-      # 4. Build de la solución
+      # 5. Build project
       - name: Build solution
-        run: dotnet build UPTSiteTests/UPTSiteTests.csproj --no-restore --configuration Debug
+        run: dotnet build UPTSiteTests/UPTSiteTests.csproj --configuration Debug --no-restore
 
-      # 5. Instalar navegadores de Playwright (si los usas)
+      # 6. Instalar navegadores de Playwright
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      # 6. Ejecutar tests con cobertura y resultados en carpeta TestResults
+      # 7. Ejecutar tests con cobertura
       - name: Run tests with code coverage
         run: dotnet test UPTSiteTests/UPTSiteTests.csproj --collect:"XPlat Code Coverage" --results-directory TestResults
 
-      # 7. Instalar ReportGenerator
+      # 8. Instalar ReportGenerator
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
 
-      # 8. Generar reporte HTML de cobertura
+      # 9. Generar reporte HTML
       - name: Generate HTML report
-        run: |
-          reportgenerator "-reports:TestResults/**/coverage.cobertura.xml" "-targetdir:Cobertura" -reporttypes:HTML
+        run: reportgenerator "-reports:TestResults/**/coverage.cobertura.xml" "-targetdir:Cobertura" -reporttypes:HTML
 
-      # 9. Verificar que la carpeta Cobertura exista
+      # 10. Verificar carpeta Cobertura
       - name: List Coverage Folder
         run: ls -la Cobertura
 
-      # 10. Configurar GitHub Pages
+      # 11. Configurar GitHub Pages
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      # 11. Subir los artefactos (HTML de cobertura)
+      # 12. Subir reporte a Pages
       - name: Upload Coverage Report
         uses: actions/upload-pages-artifact@v3
         with:
           path: Cobertura
 
-      # 12. Deploy en GitHub Pages
+      # 13. Deploy en GitHub Pages
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v3
