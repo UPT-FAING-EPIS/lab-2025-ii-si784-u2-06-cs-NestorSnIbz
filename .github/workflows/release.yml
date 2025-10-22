@@ -35,7 +35,7 @@ jobs:
         run: dotnet pack --configuration Release /p:PackageVersion=${{ env.VERSION }} -o ./nupkg
 
       - name: Publish NuGet to GitHub Packages
-        run: dotnet nuget push ./nupkg/*.nupkg --source "github" --api-key ${{ secrets.GITHUB_TOKEN }}
+        run: dotnet nuget push ./nupkg/*.nupkg --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1

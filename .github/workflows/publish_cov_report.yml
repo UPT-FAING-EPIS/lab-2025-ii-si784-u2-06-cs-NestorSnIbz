@@ -10,7 +10,7 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       pages: write
       id-token: write
 
@@ -50,16 +50,20 @@ jobs:
         run: |
           reportgenerator "-reports:**/coverage.cobertura.xml" "-targetdir:Cobertura" -reporttypes:HTML
 
-      # 9. Configurar GitHub Pages
+      # 9. Verificar que la carpeta Cobertura exista
+      - name: List Coverage Folder
+        run: ls -la Cobertura
+
+      # 10. Configurar GitHub Pages
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      # 10. Subir los artefactos (HTML de cobertura)
+      # 11. Subir los artefactos (HTML de cobertura)
       - name: Upload Coverage Report
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: Cobertura
 
-      # 11. Deploy en GitHub Pages
+      # 12. Deploy en GitHub Pages
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v3
