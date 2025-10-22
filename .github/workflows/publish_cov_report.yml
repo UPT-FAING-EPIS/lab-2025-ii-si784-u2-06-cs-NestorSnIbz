@@ -10,7 +10,7 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pages: write
       id-token: write
 
@@ -25,17 +25,17 @@ jobs:
         with:
           dotnet-version: '8.x'
 
-      # 3. Instalar navegadores de Playwright
-      - name: Install Playwright Browsers
-        run: pwsh bin/Debug/net8.0/playwright.ps1 install
-
-      # 4. Restaurar dependencias
+      # 3. Restaurar dependencias
       - name: Restore dependencies
         run: dotnet restore
 
-      # 5. Build de la solución
+      # 4. Build de la solución
       - name: Build solution
         run: dotnet build --no-restore
+
+      # 5. Instalar navegadores de Playwright
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
 
       # 6. Ejecutar tests con cobertura
       - name: Run tests with code coverage
