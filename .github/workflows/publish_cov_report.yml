@@ -27,19 +27,19 @@ jobs:
 
       # 3. Restaurar dependencias
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore UPTSiteTests/UPTSiteTests.csproj
 
       # 4. Build de la solución
       - name: Build solution
-        run: dotnet build --no-restore
+        run: dotnet build UPTSiteTests/UPTSiteTests.csproj --no-restore --configuration Debug
 
-      # 5. Instalar navegadores de Playwright
+      # 5. Instalar navegadores de Playwright (si los usas)
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      # 6. Ejecutar tests con cobertura
+      # 6. Ejecutar tests con cobertura y resultados en carpeta TestResults
       - name: Run tests with code coverage
-        run: dotnet test --collect:"XPlat Code Coverage" --settings "TestRunParameters.RunConfiguration.ResultsDirectory=TestResults"
+        run: dotnet test UPTSiteTests/UPTSiteTests.csproj --collect:"XPlat Code Coverage" --results-directory TestResults
 
       # 7. Instalar ReportGenerator
       - name: Install ReportGenerator
@@ -48,7 +48,7 @@ jobs:
       # 8. Generar reporte HTML de cobertura
       - name: Generate HTML report
         run: |
-          reportgenerator "-reports:**/coverage.cobertura.xml" "-targetdir:Cobertura" -reporttypes:HTML
+          reportgenerator "-reports:TestResults/**/coverage.cobertura.xml" "-targetdir:Cobertura" -reporttypes:HTML
 
       # 9. Verificar que la carpeta Cobertura exista
       - name: List Coverage Folder

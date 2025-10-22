@@ -1,71 +1,47 @@
-name: Release NuGet
+name: Test and Coverage
 
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build-and-release:
+  build-and-test:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      packages: write
+      contents: read
+      pages: write
       id-token: write
 
-    env:
-      NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
-      VERSION: "2022.7.5747.0"
-
     steps:
-      # 1. Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.x'
 
-      # 3. Restore dependencies
       - name: Restore dependencies
         run: dotnet restore UPTSiteTests/UPTSiteTests.csproj
 
-      # 4. Build solution
-      - name: Build solution
+      - name: Build tests
         run: dotnet build UPTSiteTests/UPTSiteTests.csproj --configuration Release --no-restore
 
-      # 5. Crear carpeta nupkg si no existe
-      - name: Create nupkg folder
-        run: mkdir -p ./nupkg
+      - name: Run tests with code coverage
+        run: dotnet test UPTSiteTests/UPTSiteTests.csproj --collect:"XPlat Code Coverage"
 
-      # 6. Pack NuGet
-      - name: Pack NuGet
-        run: dotnet pack UPTSiteTests/UPTSiteTests.csproj --configuration Release /p:PackageVersion=${{ env.VERSION }} -o ./nupkg
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
 
-      # 7. Verificar contenido de nupkg
-      - name: List nupkg folder
-        run: ls -la ./nupkg
+      - name: Generate HTML coverage report
+        run: reportgenerator "-reports:**/coverage.cobertura.xml" "-targetdir:Cobertura" -reporttypes:HTML
 
-      # 8. Publicar NuGet en GitHub Packages
-      - name: Publish NuGet to GitHub Packages
-        run: dotnet nuget push ./nupkg/*.nupkg --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key ${{ secrets.GITHUB_TOKEN }}
-
-      # 9. Crear release en GitHub
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+      - name: Upload Coverage Report
+        uses: actions/upload-pages-artifact@v3
         with:
-          tag_name: v${{ env.VERSION }}
-          name: Release v${{ env.VERSION }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          path: Cobertura
 
-      # 10. Subir NuGet al release
-      - name: Upload NuGet to release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ./nupkg/*.nupkg
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v3
