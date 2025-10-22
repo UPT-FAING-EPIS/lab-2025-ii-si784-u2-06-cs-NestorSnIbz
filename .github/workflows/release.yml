@@ -17,32 +17,41 @@ jobs:
       VERSION: "2022.7.5747.0"
 
     steps:
+      # 1. Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Setup .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.x'
 
+      # 3. Restore dependencies
       - name: Restore dependencies
-        run: dotnet restore UPTSite/UPTSite.csproj
+        run: dotnet restore UPTSiteTests/UPTSiteTests.csproj
 
+      # 4. Build solution
       - name: Build solution
-        run: dotnet build UPTSite/UPTSite.csproj --configuration Release --no-restore
+        run: dotnet build UPTSiteTests/UPTSiteTests.csproj --configuration Release --no-restore
 
+      # 5. Crear carpeta nupkg si no existe
       - name: Create nupkg folder
         run: mkdir -p ./nupkg
 
+      # 6. Pack NuGet
       - name: Pack NuGet
-        run: dotnet pack UPTSite/UPTSite.csproj --configuration Release /p:PackageVersion=${{ env.VERSION }} -o ./nupkg
+        run: dotnet pack UPTSiteTests/UPTSiteTests.csproj --configuration Release /p:PackageVersion=${{ env.VERSION }} -o ./nupkg
 
+      # 7. Verificar contenido de nupkg
       - name: List nupkg folder
         run: ls -la ./nupkg
 
+      # 8. Publicar NuGet en GitHub Packages
       - name: Publish NuGet to GitHub Packages
         run: dotnet nuget push ./nupkg/*.nupkg --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key ${{ secrets.GITHUB_TOKEN }}
 
+      # 9. Crear release en GitHub
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -53,6 +62,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # 10. Subir NuGet al release
       - name: Upload NuGet to release
         uses: softprops/action-gh-release@v1
         with:
