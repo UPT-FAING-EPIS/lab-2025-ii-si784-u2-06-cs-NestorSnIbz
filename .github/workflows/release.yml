@@ -14,7 +14,7 @@ jobs:
 
     env:
       NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
-      VERSION: "20225747"   # <- Reemplaza por tu código de matrícula
+      VERSION: "2022.5.747.0"  
 
     steps:
       # 1. Checkout
