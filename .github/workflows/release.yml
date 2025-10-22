@@ -14,7 +14,7 @@ jobs:
 
     env:
       NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
-      VERSION: "2022075747"
+      VERSION: "2022.7.5747.0"
 
     steps:
       - name: Checkout repository

@@ -1,4 +1,4 @@
-name: Publish Coverage & Videos
+name: Publish Coverage
 
 on:
   push:
@@ -15,40 +15,51 @@ jobs:
       id-token: write
 
     steps:
+      # 1. Checkout del repositorio
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Configurar .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.x'
 
+      # 3. Instalar navegadores de Playwright
       - name: Install Playwright Browsers
         run: pwsh bin/Debug/net8.0/playwright.ps1 install
 
+      # 4. Restaurar dependencias
       - name: Restore dependencies
         run: dotnet restore
 
+      # 5. Build de la solución
       - name: Build solution
         run: dotnet build --no-restore
 
+      # 6. Ejecutar tests con cobertura
       - name: Run tests with code coverage
         run: dotnet test --collect:"XPlat Code Coverage" --settings "TestRunParameters.RunConfiguration.ResultsDirectory=TestResults"
 
+      # 7. Instalar ReportGenerator
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
 
+      # 8. Generar reporte HTML de cobertura
       - name: Generate HTML report
         run: |
           reportgenerator "-reports:**/coverage.cobertura.xml" "-targetdir:Cobertura" -reporttypes:HTML
 
+      # 9. Configurar GitHub Pages
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
+      # 10. Subir los artefactos (HTML de cobertura)
       - name: Upload Coverage Report
         uses: actions/upload-pages-artifact@v2
         with:
           path: Cobertura
 
+      # 11. Deploy en GitHub Pages
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v2
